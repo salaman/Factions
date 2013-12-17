@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -19,6 +20,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Wither;
+import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -287,27 +289,58 @@ public class FactionsListenerMain implements Listener
 		
 		// If the defender is a player ...
 		Entity edefender = event.getEntity();
-		if (!(edefender instanceof Player)) return true;
-		Player defender = (Player)edefender;
-		UPlayer udefender = UPlayer.get(edefender);
-		
-		// Check Disabled
-		if (UConf.isDisabled(defender)) return true;
-		
-		// ... and the attacker is someone else ...
 		Entity eattacker = event.getDamager();
+
+		// Check Disabled
+		if (UConf.isDisabled(edefender)) return true;
+
+		// ... and the attacker is someone else ...
+		Projectile projectile = null;
 		if (eattacker instanceof Projectile)
 		{
+			projectile = (Projectile)eattacker;
 			eattacker = ((Projectile)eattacker).getShooter();
 		}
 		// (we check null here since there may not be an attacker)
 		// (lack of attacker situations can be caused by other bukkit plugins)
 		if (eattacker != null && eattacker.equals(edefender)) return true;
-		
+
 		// ... gather defender PS and faction information ...
-		PS defenderPs = PS.valueOf(defender);
+		PS defenderPs = PS.valueOf(edefender);
 		Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
-		
+
+		// ... gather attacker PS and faction information ...
+		PS attackerPs = PS.valueOf(eattacker);
+		Faction attackerPsFaction = BoardColls.get().getFactionAt(attackerPs);
+
+		if ((eattacker instanceof Wither || eattacker instanceof WitherSkull)
+				&& !(edefender instanceof Player)
+				&& !defenderPsFaction.isExplosionsAllowed()) {
+			return false;
+		}
+
+		// Defend against players killing animals in peaceful territory outside of their faction
+		if (eattacker instanceof Player && edefender instanceof Animals)
+		{
+			if (defenderPsFaction.getFlag(FFlag.PEACEFUL)
+					&& eattacker instanceof Player
+					&& UPlayer.get(eattacker).getFaction() != defenderPsFaction)
+			{
+				UPlayer.get(eattacker).msg("<i>You can't hurt animals in peaceful territory.");
+				if (projectile != null) {
+					// Remove projectile if it was the attacker to make sure it doesn't
+					// fire more events than it should
+					projectile.remove();
+				}
+
+				return false;
+			}
+		}
+
+		if (!(edefender instanceof Player)) return true;
+		Player defender = (Player)edefender;
+		UPlayer udefender = UPlayer.get(edefender);
+
 		// ... PVP flag may cause a damage block ...
 		if (defenderPsFaction.getFlag(FFlag.PVP) == false)
 		{
@@ -337,10 +370,6 @@ public class FactionsListenerMain implements Listener
 		
 		// ... does this player bypass all protection? ...
 		if (MConf.get().playersWhoBypassAllProtection.contains(attacker.getName())) return true;
-
-		// ... gather attacker PS and faction information ...
-		PS attackerPs = PS.valueOf(attacker);
-		Faction attackerPsFaction = BoardColls.get().getFactionAt(attackerPs);
 
 		// ... PVP flag may cause a damage block ...
 		// (just checking the defender as above isn't enough. What about the attacker? It could be in a no-pvp area)
