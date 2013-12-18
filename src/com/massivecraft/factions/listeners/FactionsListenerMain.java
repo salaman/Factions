@@ -76,6 +76,7 @@ import com.massivecraft.mcore.ps.PS;
 import com.massivecraft.mcore.util.MUtil;
 import com.massivecraft.mcore.util.PlayerUtil;
 import com.massivecraft.mcore.util.Txt;
+import org.bukkit.potion.PotionEffectType;
 
 public class FactionsListenerMain implements Listener
 {
@@ -239,6 +240,20 @@ public class FactionsListenerMain implements Listener
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void canCombatDamageHappen(EntityDamageEvent event)
 	{
+		Entity edefender = event.getEntity();
+
+		if (edefender instanceof LivingEntity
+				&& ((LivingEntity)edefender).hasPotionEffect(PotionEffectType.WITHER)) {
+			PS defenderPs = PS.valueOf(edefender);
+			Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
+
+			if (!defenderPsFaction.isExplosionsAllowed()) {
+				((LivingEntity)edefender).removePotionEffect(PotionEffectType.WITHER);
+				event.setCancelled(true);
+				return;
+			}
+		}
+
 		// TODO: Can't we just listen to the class type the sub is of?
 		if (!(event instanceof EntityDamageByEntityEvent)) return;
 		EntityDamageByEntityEvent sub = (EntityDamageByEntityEvent)event;
