@@ -44,6 +44,7 @@ permissions:
   factions.money.f2p: {description: transfer f --> p, default: false}
   factions.money.p2f: {description: transfer p --> f, default: false}
   factions.money.withdraw: {description: withdraw from faction, default: false}
+  factions.noboom: {description: toggle explosion flag, default: false}
   factions.officer: {description: make player officer, default: false}
   factions.officer.any: {description: set officers for another faction, default: false}
   factions.open: {description: set if invitation is required to join, default: false}
@@ -99,6 +100,7 @@ permissions:
       factions.money.f2p: true
       factions.money.p2f: true
       factions.money.withdraw: true
+      factions.noboom: true
       factions.officer: true
       factions.officer.any: true
       factions.open: true
@@ -174,6 +176,7 @@ permissions:
       factions.money.f2p: true
       factions.money.p2f: true
       factions.money.withdraw: true
+      factions.noboom: true
       factions.officer: true
       factions.open: true
       factions.perm: true

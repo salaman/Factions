@@ -37,6 +37,7 @@ public enum FPerm
 	WITHDRAW(false, "withdraw", "withdraw money",         Rel.LEADER, Rel.OFFICER),
 	TERRITORY(false, "territory", "claim or unclaim",     Rel.LEADER, Rel.OFFICER),
 	ACCESS(false, "access", "grant territory",            Rel.LEADER, Rel.OFFICER),
+	NOBOOM(false, "noboom", "toggle explosions",          Rel.LEADER, Rel.OFFICER),
 	DISBAND(false, "disband", "disband the faction",      Rel.LEADER),
 	PERMS(false, "perms", "manage permissions",           Rel.LEADER),
 	
@@ -118,6 +119,7 @@ public enum FPerm
 		if (str.startsWith("t"))   return TERRITORY;
 		if (str.startsWith("di"))  return DISBAND;
 		if (str.startsWith("pe"))  return PERMS;
+		if (str.startsWith("nob")) return NOBOOM;
 		return null;
 	}
 	
