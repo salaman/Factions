@@ -45,16 +45,15 @@ public class CmdFactionsNoboom extends FCommand
 
 		FFlag flag = FFlag.EXPLOSIONS;
 
-		if ( ! this.argIsSet(1))
+		if ( ! this.argIsSet(0))
 		{
-			boolean explosions = faction.getFlag(flag);
-			faction.setFlag(flag, !explosions);
+			faction.setFlag(flag, !faction.getFlag(flag));
 			msg(Txt.titleize("Flag for " + faction.describeTo(usender, true)));
 			msg(flag.getStateInfo(faction.getFlag(flag), true));
 			return;
 		}
 
-		Boolean targetValue = this.arg(1, ARBoolean.get());
+		Boolean targetValue = this.arg(0, ARBoolean.get());
 		if (targetValue == null) return;
 
 		// Do the change
