@@ -335,13 +335,12 @@ public class FactionsListenerMain implements Listener
 		}
 
 		// Defend against players killing animals in peaceful territory outside of their faction
-		if (eattacker instanceof Player && edefender instanceof Animals)
-		{
-			if (defenderPsFaction.getFlag(FFlag.PEACEFUL)
-					&& eattacker instanceof Player
-					&& UPlayer.get(eattacker).getFaction() != defenderPsFaction)
-			{
+		if (eattacker instanceof Player && edefender instanceof Animals) {
+			UPlayer uattacker = UPlayer.get(eattacker);
+
+			if (!uattacker.isUsingAdminMode() && !FPerm.ANIMALS.has(uattacker, defenderPsFaction, true)) {
 				UPlayer.get(eattacker).msg("<i>You can't hurt animals in peaceful territory.");
+
 				if (projectile != null) {
 					// Remove projectile if it was the attacker to make sure it doesn't
 					// fire more events than it should
