@@ -5,7 +5,6 @@
 
 # NetBeans
 /nbproject
-/build.xml
 
 # vim
 .*.sw[a-p]
