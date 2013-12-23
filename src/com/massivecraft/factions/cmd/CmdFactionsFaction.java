@@ -20,6 +20,7 @@ import com.massivecraft.factions.Rel;
 import com.massivecraft.mcore.cmd.req.ReqHasPerm;
 import com.massivecraft.mcore.mixin.Mixin;
 import com.massivecraft.mcore.money.Money;
+import com.massivecraft.mcore.util.MUtil;
 import com.massivecraft.mcore.util.TimeDiffUtil;
 import com.massivecraft.mcore.util.TimeUnit;
 import com.massivecraft.mcore.util.Txt;
@@ -153,7 +154,9 @@ public class CmdFactionsFaction extends FCommand
 		
 		for (UPlayer follower : followers)
 		{
-			if (follower.isOnline() && Mixin.canSee(sender, follower.getId()))
+			UPlayer currentUPlayer = UPlayer.get(follower.getPlayer());
+
+			if (follower.isOnline() && MUtil.equals(currentUPlayer.getUniverse(), faction.getUniverse()) && Mixin.canSee(sender, follower.getId()))
 			{
 				followerNamesOnline.add(follower.getNameAndTitle(usender));
 			}

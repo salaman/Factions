@@ -1024,7 +1024,7 @@ public class Faction extends Entity<Faction> implements EconomyParticipator
 	
 	public boolean isFactionConsideredOffline()
 	{
-		return this.isAllUPlayersOffline();
+		return this.getOnlinePlayers().size() == 0;
 	}
 	
 	public boolean isFactionConsideredOnline()
