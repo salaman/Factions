@@ -324,10 +324,6 @@ public class FactionsListenerMain implements Listener
 		PS defenderPs = PS.valueOf(edefender);
 		Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
 
-		// ... gather attacker PS and faction information ...
-		PS attackerPs = PS.valueOf(eattacker);
-		Faction attackerPsFaction = BoardColls.get().getFactionAt(attackerPs);
-
 		if ((eattacker instanceof Wither || eattacker instanceof WitherSkull)
 				&& !(edefender instanceof Player)
 				&& !defenderPsFaction.isExplosionsAllowed()) {
@@ -384,6 +380,10 @@ public class FactionsListenerMain implements Listener
 		
 		// ... does this player bypass all protection? ...
 		if (MConf.get().playersWhoBypassAllProtection.contains(attacker.getName())) return true;
+
+		// ... gather attacker PS and faction information ...
+		PS attackerPs = PS.valueOf(eattacker);
+		Faction attackerPsFaction = BoardColls.get().getFactionAt(attackerPs);
 
 		// ... PVP flag may cause a damage block ...
 		// (just checking the defender as above isn't enough. What about the attacker? It could be in a no-pvp area)
