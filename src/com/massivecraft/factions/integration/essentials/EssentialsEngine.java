@@ -2,6 +2,7 @@ package com.massivecraft.factions.integration.essentials;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -58,7 +59,10 @@ public class EssentialsEngine implements Listener
 		Essentials essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
 		if (essentials == null) return;
 
-		Teleport teleport = essentials.getUser(usender.getPlayer()).getTeleport();
+		Player player = (event.getSender() instanceof Player) ? (Player) event.getSender() : null;
+		if (player == null) return;
+
+		Teleport teleport = essentials.getUser(player).getTeleport();
 		Trade trade = new Trade(new BigDecimal(uconf.econCostHome), essentials);
 
 		try
