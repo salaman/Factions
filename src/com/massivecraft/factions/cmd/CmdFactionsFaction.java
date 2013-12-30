@@ -13,6 +13,7 @@ import com.massivecraft.factions.entity.UPlayer;
 import com.massivecraft.factions.entity.Faction;
 import com.massivecraft.factions.event.FactionsEventChunkChangeType;
 import com.massivecraft.factions.integration.Econ;
+import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.FFlag;
 import com.massivecraft.factions.Perm;
 import com.massivecraft.factions.PlayerRoleComparator;
@@ -20,6 +21,7 @@ import com.massivecraft.factions.Rel;
 import com.massivecraft.mcore.cmd.req.ReqHasPerm;
 import com.massivecraft.mcore.mixin.Mixin;
 import com.massivecraft.mcore.money.Money;
+import com.massivecraft.mcore.ps.PS;
 import com.massivecraft.mcore.util.MUtil;
 import com.massivecraft.mcore.util.TimeDiffUtil;
 import com.massivecraft.mcore.util.TimeUnit;
@@ -154,13 +156,26 @@ public class CmdFactionsFaction extends FCommand
 		
 		for (UPlayer follower : followers)
 		{
-			UPlayer currentUPlayer = UPlayer.get(follower.getPlayer());
+			boolean online = false;
 
-			if (follower.isOnline() && MUtil.equals(currentUPlayer.getUniverse(), faction.getUniverse()) && Mixin.canSee(sender, follower.getId()))
+			if (follower.isOnline() && Mixin.canSee(sender, follower.getId()))
 			{
-				followerNamesOnline.add(follower.getNameAndTitle(usender));
+				// Check if the player is currently inside the universe of the faction
+				PS ps = Mixin.getSenderPs(follower.getId());
+
+				if (ps != null)
+				{
+					String psUniverse = Factions.get().getMultiverse().getUniverseForWorldName(ps.getWorld());
+
+					if (psUniverse.equals(faction.getUniverse()))
+					{
+						followerNamesOnline.add(follower.getNameAndTitle(usender));
+						online = true;
+					}
+				}
 			}
-			else if (normal)
+
+			if (normal && !online)
 			{
 				// For the non-faction we skip the offline members since they are far to many (infinate almost)
 				followerNamesOffline.add(follower.getNameAndTitle(usender));
