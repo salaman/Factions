@@ -242,13 +242,14 @@ public class FactionsListenerMain implements Listener
 	{
 		Entity edefender = event.getEntity();
 
-		if (edefender instanceof LivingEntity
-				&& ((LivingEntity)edefender).hasPotionEffect(PotionEffectType.WITHER)) {
+		if (edefender != null
+				&& edefender instanceof Animals
+				&& ((Animals)edefender).hasPotionEffect(PotionEffectType.WITHER)) {
 			PS defenderPs = PS.valueOf(edefender);
 			Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
 
 			if (!defenderPsFaction.isExplosionsAllowed()) {
-				((LivingEntity)edefender).removePotionEffect(PotionEffectType.WITHER);
+				((Animals)edefender).removePotionEffect(PotionEffectType.WITHER);
 				event.setCancelled(true);
 				return;
 			}
