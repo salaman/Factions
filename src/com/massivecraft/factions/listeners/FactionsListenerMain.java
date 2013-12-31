@@ -246,11 +246,13 @@ public class FactionsListenerMain implements Listener
 
 		if (edefender != null
 				&& edefender instanceof Animals
-				&& event.getCause() == DamageCause.WITHER) {
+				&& event.getCause() == DamageCause.WITHER)
+		{
 			PS defenderPs = PS.valueOf(edefender);
 			Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
 
-			if (!defenderPsFaction.isExplosionsAllowed()) {
+			if (!defenderPsFaction.isExplosionsAllowed())
+			{
 				((Animals)edefender).removePotionEffect(PotionEffectType.WITHER);
 				event.setCancelled(true);
 				return;
@@ -319,6 +321,7 @@ public class FactionsListenerMain implements Listener
 			projectile = (Projectile)eattacker;
 			eattacker = ((Projectile)eattacker).getShooter();
 		}
+
 		// (we check null here since there may not be an attacker)
 		// (lack of attacker situations can be caused by other bukkit plugins)
 		if (eattacker != null && eattacker.equals(edefender)) return true;
@@ -330,7 +333,8 @@ public class FactionsListenerMain implements Listener
 		// Defend against players setting Withers loose in territory where explosions are disabled
 		if ((eattacker instanceof Wither || eattacker instanceof WitherSkull)
 				&& !(edefender instanceof Player)
-				&& !defenderPsFaction.isExplosionsAllowed()) {
+				&& !defenderPsFaction.isExplosionsAllowed())
+		{
 			return false;
 		}
 
