@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -326,6 +327,7 @@ public class FactionsListenerMain implements Listener
 		PS defenderPs = PS.valueOf(edefender);
 		Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
 
+		// Defend against players setting Withers loose in territory where explosions are disabled
 		if ((eattacker instanceof Wither || eattacker instanceof WitherSkull)
 				&& !(edefender instanceof Player)
 				&& !defenderPsFaction.isExplosionsAllowed()) {
@@ -333,13 +335,34 @@ public class FactionsListenerMain implements Listener
 		}
 
 		// Defend against players killing animals in peaceful territory outside of their faction
-		if (eattacker instanceof Player && edefender instanceof Animals) {
-			UPlayer uattacker = UPlayer.get(eattacker);
+		if (edefender instanceof Animals)
+		{
+			UPlayer uattacker = null;
+			boolean attackerIsPlayer = false;
 
-			if (!uattacker.isUsingAdminMode() && !FPerm.ANIMALS.has(uattacker, defenderPsFaction, true)) {
-				UPlayer.get(eattacker).msg("<i>You can't hurt animals in peaceful territory.");
+			// Player trying to lure hostile mobs into territory
+			if (eattacker instanceof Creature)
+			{
+				LivingEntity target = ((Creature)eattacker).getTarget();
 
-				if (projectile != null) {
+				if (target != null && target instanceof Player)
+				{
+					uattacker = UPlayer.get(target);
+				}
+			}
+			// Player is directly attacking animals
+			else if (eattacker instanceof Player)
+			{
+				uattacker = UPlayer.get(eattacker);
+				attackerIsPlayer = true;
+			}
+
+			if (uattacker != null
+					&& !uattacker.isUsingAdminMode()
+					&& !FPerm.ANIMALS.has(uattacker, defenderPsFaction, attackerIsPlayer && notify))
+			{
+				if (projectile != null)
+				{
 					// Remove projectile if it was the attacker to make sure it doesn't
 					// fire more events than it should
 					projectile.remove();
