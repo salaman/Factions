@@ -40,6 +40,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -244,7 +245,7 @@ public class FactionsListenerMain implements Listener
 
 		if (edefender != null
 				&& edefender instanceof Animals
-				&& ((Animals)edefender).hasPotionEffect(PotionEffectType.WITHER)) {
+				&& event.getCause() == DamageCause.WITHER) {
 			PS defenderPs = PS.valueOf(edefender);
 			Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
 
