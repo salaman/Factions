@@ -54,6 +54,7 @@ import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -339,8 +340,10 @@ public class FactionsListenerMain implements Listener
 			return false;
 		}
 
-		// Defend against players killing peaceful mobs in peaceful territory outside of their faction
-		if (edefender instanceof Creature && !(edefender instanceof Monster))
+		// Defend against players killing peaceful mobs or hitting item frames
+		// (or using mobs to do so) in territory outside of their faction
+		if (edefender instanceof ItemFrame
+				|| edefender instanceof Creature && !(edefender instanceof Monster))
 		{
 			UPlayer uattacker = null;
 			boolean attackerIsPlayer = false;
@@ -362,18 +365,19 @@ public class FactionsListenerMain implements Listener
 				attackerIsPlayer = true;
 			}
 
-			if (uattacker != null
-					&& !uattacker.isUsingAdminMode()
-					&& !FPerm.ANIMALS.has(uattacker, defenderPsFaction, attackerIsPlayer && notify))
+			if (uattacker != null && !uattacker.isUsingAdminMode())
 			{
-				if (projectile != null)
+				// Check against correct permission
+				FPerm perm = (edefender instanceof Creature) ? FPerm.ANIMALS : FPerm.BUILD;
+
+				if (!perm.has(uattacker, defenderPsFaction, attackerIsPlayer && notify))
 				{
 					// Remove projectile if it was the attacker to make sure it doesn't
 					// fire more events than it should
-					projectile.remove();
-				}
+					if (projectile != null) projectile.remove();
 
-				return false;
+					return false;
+				}
 			}
 		}
 
@@ -995,6 +999,24 @@ public class FactionsListenerMain implements Listener
 		{
 			event.setCancelled(true);
 			return;
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event)
+	{
+		// Prevent people from rotating items inside item frames
+		if (event.getRightClicked() instanceof ItemFrame)
+		{
+			UPlayer me = UPlayer.get(event.getPlayer());
+			ItemFrame itemFrame = (ItemFrame)event.getRightClicked();
+			PS ps = PS.valueOf(itemFrame);
+
+			if (!FPerm.BUILD.has(me, ps, true))
+			{
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 
