@@ -18,6 +18,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Wither;
@@ -338,8 +339,8 @@ public class FactionsListenerMain implements Listener
 			return false;
 		}
 
-		// Defend against players killing animals in peaceful territory outside of their faction
-		if (edefender instanceof Animals)
+		// Defend against players killing peaceful mobs in peaceful territory outside of their faction
+		if (edefender instanceof Creature && !(edefender instanceof Monster))
 		{
 			UPlayer uattacker = null;
 			boolean attackerIsPlayer = false;
