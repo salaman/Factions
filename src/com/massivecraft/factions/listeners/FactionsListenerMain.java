@@ -340,47 +340,6 @@ public class FactionsListenerMain implements Listener
 			return false;
 		}
 
-		// Defend against players killing peaceful mobs or hitting item frames
-		// (or using mobs to do so) in territory outside of their faction
-		if (edefender instanceof ItemFrame
-				|| edefender instanceof Creature && !(edefender instanceof Monster))
-		{
-			UPlayer uattacker = null;
-			boolean attackerIsPlayer = false;
-
-			// Player trying to lure hostile mobs into territory
-			if (eattacker instanceof Creature)
-			{
-				LivingEntity target = ((Creature)eattacker).getTarget();
-
-				if (target != null && target instanceof Player)
-				{
-					uattacker = UPlayer.get(target);
-				}
-			}
-			// Player is directly attacking animals
-			else if (eattacker instanceof Player)
-			{
-				uattacker = UPlayer.get(eattacker);
-				attackerIsPlayer = true;
-			}
-
-			if (uattacker != null && !uattacker.isUsingAdminMode())
-			{
-				// Check against correct permission
-				FPerm perm = (edefender instanceof Creature) ? FPerm.ANIMALS : FPerm.BUILD;
-
-				if (!perm.has(uattacker, defenderPsFaction, attackerIsPlayer && notify))
-				{
-					// Remove projectile if it was the attacker to make sure it doesn't
-					// fire more events than it should
-					if (projectile != null) projectile.remove();
-
-					return false;
-				}
-			}
-		}
-
 		if (!(edefender instanceof Player)) return true;
 		Player defender = (Player)edefender;
 		UPlayer udefender = UPlayer.get(edefender);
@@ -879,17 +838,29 @@ public class FactionsListenerMain implements Listener
 		Entity edamagee = event.getEntity();
 		if (!(edamagee instanceof ItemFrame)) return;
 		ItemFrame itemFrame = (ItemFrame)edamagee;
-		
+
 		// ... and the liable damager is a player ...
 		Entity edamager = MUtil.getLiableDamager(event);
+
+		// ... or a player being targetted by a mob ...
+		if (edamager instanceof Creature) {
+			LivingEntity target = ((Creature)edamager).getTarget();
+			if (target == null) return;
+			edamager = target;
+		}
+
 		if (!(edamager instanceof Player)) return;
 		Player player = (Player)edamager;
-		
+
 		// ... and the player can't build there ...
 		if (canPlayerBuildAt(player, PS.valueOf(itemFrame), true)) return;
 		
 		// ... then cancel the event.
 		event.setCancelled(true);
+
+		// Remove projectile if it was the attacker to make sure it doesn't
+		// fire more events than it should
+		if (event.getDamager() instanceof Projectile) event.getDamager().remove();
 	}
 	
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -971,7 +942,54 @@ public class FactionsListenerMain implements Listener
 			event.setCancelled(true);
 		}
 	}
-	
+
+	// -------------------------------------------- //
+	// FLAG: ANIMALS
+	// -------------------------------------------- //
+
+	public static boolean canPlayerHurtAnimalsAt(Player player, PS ps, boolean verbose)
+	{
+		String name = player.getName();
+		if (MConf.get().playersWhoBypassAllProtection.contains(name)) return true;
+
+		UPlayer uplayer = UPlayer.get(player);
+		if (uplayer.isUsingAdminMode()) return true;
+
+		return FPerm.ANIMALS.has(uplayer, ps, verbose);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void animalDamage(EntityDamageByEntityEvent event)
+	{
+		// If the damagee is a friendly animal ...
+		Entity edamagee = event.getEntity();
+		if (!(edamagee instanceof Creature) || edamagee instanceof Monster) return;
+		Creature creature = (Creature)edamagee;
+
+		// ... and the liable damager is a player ...
+		Entity edamager = MUtil.getLiableDamager(event);
+
+		// ... or a player being targetted by a mob ...
+		if (edamager instanceof Creature) {
+			LivingEntity target = ((Creature)edamager).getTarget();
+			if (target == null) return;
+			edamager = target;
+		}
+
+		if (!(edamager instanceof Player)) return;
+		Player player = (Player)edamager;
+
+		// ... and the player can't build there ...
+		if (canPlayerHurtAnimalsAt(player, PS.valueOf(creature), true)) return;
+
+		// ... then cancel the event.
+		event.setCancelled(true);
+
+		// Remove projectile if it was the attacker to make sure it doesn't
+		// fire more events than it should
+		if (event.getDamager() instanceof Projectile) event.getDamager().remove();
+	}
+
 	// -------------------------------------------- //
 	// ASSORTED BUILD AND INTERACT
 	// -------------------------------------------- //
