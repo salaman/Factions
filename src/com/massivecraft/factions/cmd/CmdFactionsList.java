@@ -65,12 +65,12 @@ public class CmdFactionsList extends FCommand
 		{
 			if (faction.isNone())
 			{
-				lines.add(Txt.parse("<i>Factionless<i> %d online", FactionColls.get().get(sender).getNone().getUPlayersWhereOnline(true).size()));
+				lines.add(Txt.parse("<i>Factionless<i> %d online", FactionColls.get().get(sender).getNone().getOnlinePlayers().size()));
 				continue;
 			}
 			lines.add(Txt.parse("%s<i> %d/%d online, %d/%d/%d",
 				faction.getName(usender),
-				faction.getUPlayersWhereOnline(true).size(),
+				faction.getOnlinePlayers().size(),
 				faction.getUPlayers().size(),
 				faction.getLandCount(),
 				faction.getPowerRounded(),
