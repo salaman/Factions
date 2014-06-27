@@ -54,6 +54,7 @@ import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -836,17 +837,29 @@ public class FactionsListenerMain implements Listener
 		Entity edamagee = event.getEntity();
 		if (!(edamagee instanceof ItemFrame)) return;
 		ItemFrame itemFrame = (ItemFrame)edamagee;
-		
+
 		// ... and the liable damager is a player ...
 		Entity edamager = MUtil.getLiableDamager(event);
+
+		// ... or a player being targetted by a mob ...
+		if (edamager instanceof Creature) {
+			LivingEntity target = ((Creature)edamager).getTarget();
+			if (target == null) return;
+			edamager = target;
+		}
+
 		if (!(edamager instanceof Player)) return;
 		Player player = (Player)edamager;
-		
+
 		// ... and the player can't build there ...
 		if (canPlayerBuildAt(player, PS.valueOf(itemFrame), true)) return;
 		
 		// ... then cancel the event.
 		event.setCancelled(true);
+
+		// Remove projectile if it was the attacker to make sure it doesn't
+		// fire more events than it should
+		if (event.getDamager() instanceof Projectile) event.getDamager().remove();
 	}
 	
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -1003,6 +1016,24 @@ public class FactionsListenerMain implements Listener
 		{
 			event.setCancelled(true);
 			return;
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event)
+	{
+		// Prevent people from rotating items inside item frames
+		if (event.getRightClicked() instanceof ItemFrame)
+		{
+			UPlayer me = UPlayer.get(event.getPlayer());
+			ItemFrame itemFrame = (ItemFrame)event.getRightClicked();
+			PS ps = PS.valueOf(itemFrame);
+
+			if (!FPerm.BUILD.has(me, ps, true))
+			{
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 
