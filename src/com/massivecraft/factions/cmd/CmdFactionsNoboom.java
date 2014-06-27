@@ -1,0 +1,63 @@
+package com.massivecraft.factions.cmd;
+
+import com.massivecraft.factions.FFlag;
+import com.massivecraft.factions.FPerm;
+import com.massivecraft.factions.Perm;
+import com.massivecraft.factions.cmd.req.ReqFactionsEnabled;
+import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.massivecore.cmd.arg.ARBoolean;
+import com.massivecraft.massivecore.cmd.req.ReqHasPerm;
+import com.massivecraft.massivecore.util.Txt;
+
+public class CmdFactionsNoboom extends FCommand
+{
+	// -------------------------------------------- //
+	// CONSTRUCT
+	// -------------------------------------------- //
+
+	public CmdFactionsNoboom()
+	{
+		// Aliases
+		this.addAliases("noboom");
+
+		// Args
+		this.addOptionalArg("yes/no", "read");
+
+		// Requirements
+		this.addRequirements(ReqFactionsEnabled.get());
+		this.addRequirements(ReqHasPerm.get(Perm.NOBOOM.node));
+	}
+
+	// -------------------------------------------- //
+	// OVERRIDE
+	// -------------------------------------------- //
+
+	@Override
+	public void perform()
+	{
+		Faction faction = usenderFaction;
+		if (faction == null) return;
+
+		// FPerm
+		if (!FPerm.NOBOOM.has(usender, faction, true)) return;
+
+		FFlag flag = FFlag.EXPLOSIONS;
+
+		if ( ! this.argIsSet(0))
+		{
+			faction.setFlag(flag, !faction.getFlag(flag));
+			msg(Txt.titleize("Flag for " + faction.describeTo(usender, true)));
+			msg(flag.getStateInfo(faction.getFlag(flag), true));
+			return;
+		}
+
+		Boolean targetValue = this.arg(0, ARBoolean.get());
+		if (targetValue == null) return;
+
+		// Do the change
+		msg(Txt.titleize("Flag for " + faction.describeTo(usender, true)));
+		faction.setFlag(flag, targetValue);
+		msg(flag.getStateInfo(faction.getFlag(flag), true));
+	}
+
+}

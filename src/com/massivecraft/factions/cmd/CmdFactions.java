@@ -46,6 +46,7 @@ public class CmdFactions extends FCommand
 	public CmdFactionsRelationEnemy cmdFactionsRelationEnemy = new CmdFactionsRelationEnemy();
 	public CmdFactionsPerm cmdFactionsPerm = new CmdFactionsPerm();
 	public CmdFactionsFlag cmdFactionsFlag = new CmdFactionsFlag();
+	public CmdFactionsNoboom cmdFactionsNoboom = new CmdFactionsNoboom();
 	public CmdFactionsDisband cmdFactionsDisband = new CmdFactionsDisband();
 	public CmdFactionsAdmin cmdFactionsAdmin = new CmdFactionsAdmin();
 	public CmdFactionsPowerBoost cmdFactionsPowerBoost = new CmdFactionsPowerBoost();
@@ -91,6 +92,7 @@ public class CmdFactions extends FCommand
 		this.addSubCommand(this.cmdFactionsRelationEnemy);
 		this.addSubCommand(this.cmdFactionsPerm);
 		this.addSubCommand(this.cmdFactionsFlag);
+		this.addSubCommand(this.cmdFactionsNoboom);
 		this.addSubCommand(this.cmdFactionsDisband);
 		this.addSubCommand(this.cmdFactionsAdmin);
 		this.addSubCommand(this.cmdFactionsPowerBoost);
