@@ -26,6 +26,7 @@ public enum FPerm
 	
 	BUILD(true, "build", "edit the terrain",              Rel.LEADER, Rel.OFFICER, Rel.MEMBER, Rel.ALLY),
 	PAINBUILD(true, "painbuild", "edit, take damage"),
+	ANIMALS(true, "animals", "kill animals",              Rel.LEADER, Rel.OFFICER, Rel.MEMBER, Rel.RECRUIT, Rel.ALLY),
 	DOOR(true, "door", "use doors",                       Rel.LEADER, Rel.OFFICER, Rel.MEMBER, Rel.RECRUIT, Rel.ALLY),
 	BUTTON(true, "button", "use stone buttons",           Rel.LEADER, Rel.OFFICER, Rel.MEMBER, Rel.RECRUIT, Rel.ALLY),
 	LEVER(true, "lever", "use levers",                    Rel.LEADER, Rel.OFFICER, Rel.MEMBER, Rel.RECRUIT, Rel.ALLY),
@@ -104,9 +105,10 @@ public enum FPerm
 	public static FPerm parse(String str)
 	{
 		str = str.toLowerCase();
-		if (str.startsWith("a"))   return ACCESS;
+		if (str.startsWith("ac"))  return ACCESS;
 		if (str.startsWith("bui")) return BUILD;
 		if (str.startsWith("pa"))  return PAINBUILD;
+		if (str.startsWith("an"))  return ANIMALS;
 		if (str.startsWith("do"))  return DOOR;
 		if (str.startsWith("but")) return BUTTON;
 		if (str.startsWith("l"))   return LEVER;

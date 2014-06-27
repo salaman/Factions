@@ -11,13 +11,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Wither;
+import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,6 +42,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -52,6 +58,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 
 import com.massivecraft.factions.FFlag;
@@ -237,6 +244,23 @@ public class FactionsListenerMain implements Listener
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void canCombatDamageHappen(EntityDamageEvent event)
 	{
+		Entity edefender = event.getEntity();
+
+		if (edefender != null
+				&& edefender instanceof Animals
+				&& event.getCause() == DamageCause.WITHER)
+		{
+			PS defenderPs = PS.valueOf(edefender);
+			Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
+
+			if (!defenderPsFaction.isExplosionsAllowed())
+			{
+				((Animals)edefender).removePotionEffect(PotionEffectType.WITHER);
+				event.setCancelled(true);
+				return;
+			}
+		}
+
 		// TODO: Can't we just listen to the class type the sub is of?
 		if (!(event instanceof EntityDamageByEntityEvent)) return;
 		EntityDamageByEntityEvent sub = (EntityDamageByEntityEvent)event;
@@ -290,24 +314,33 @@ public class FactionsListenerMain implements Listener
 		
 		// If the defender is a player ...
 		Entity edefender = event.getEntity();
-		if (!(edefender instanceof Player)) return true;
-		Player defender = (Player)edefender;
-		UPlayer udefender = UPlayer.get(edefender);
-		
+
 		// Check Disabled
-		if (UConf.isDisabled(defender)) return true;
-		
+		if (UConf.isDisabled(edefender)) return true;
+
 		// ... and the attacker is someone else ...
 		Entity eattacker = MUtil.getLiableDamager(event);
-		
+
 		// (we check null here since there may not be an attacker)
 		// (lack of attacker situations can be caused by other bukkit plugins)
 		if (eattacker != null && eattacker.equals(edefender)) return true;
-		
+
 		// ... gather defender PS and faction information ...
-		PS defenderPs = PS.valueOf(defender);
+		PS defenderPs = PS.valueOf(edefender);
 		Faction defenderPsFaction = BoardColls.get().getFactionAt(defenderPs);
-		
+
+		// Defend against players setting Withers loose in territory where explosions are disabled
+		if ((eattacker instanceof Wither || eattacker instanceof WitherSkull)
+				&& !(edefender instanceof Player)
+				&& !defenderPsFaction.isExplosionsAllowed())
+		{
+			return false;
+		}
+
+		if (!(edefender instanceof Player)) return true;
+		Player defender = (Player)edefender;
+		UPlayer udefender = UPlayer.get(edefender);
+
 		// ... PVP flag may cause a damage block ...
 		if (defenderPsFaction.getFlag(FFlag.PVP) == false)
 		{
@@ -339,7 +372,7 @@ public class FactionsListenerMain implements Listener
 		if (MConf.get().playersWhoBypassAllProtection.contains(attacker.getName())) return true;
 
 		// ... gather attacker PS and faction information ...
-		PS attackerPs = PS.valueOf(attacker);
+		PS attackerPs = PS.valueOf(eattacker);
 		Faction attackerPsFaction = BoardColls.get().getFactionAt(attackerPs);
 
 		// ... PVP flag may cause a damage block ...
@@ -889,7 +922,54 @@ public class FactionsListenerMain implements Listener
 			event.setCancelled(true);
 		}
 	}
-	
+
+	// -------------------------------------------- //
+	// FLAG: ANIMALS
+	// -------------------------------------------- //
+
+	public static boolean canPlayerHurtAnimalsAt(Player player, PS ps, boolean verbose)
+	{
+		String name = player.getName();
+		if (MConf.get().playersWhoBypassAllProtection.contains(name)) return true;
+
+		UPlayer uplayer = UPlayer.get(player);
+		if (uplayer.isUsingAdminMode()) return true;
+
+		return FPerm.ANIMALS.has(uplayer, ps, verbose);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void animalDamage(EntityDamageByEntityEvent event)
+	{
+		// If the damagee is a friendly animal ...
+		Entity edamagee = event.getEntity();
+		if (!(edamagee instanceof Creature) || edamagee instanceof Monster) return;
+		Creature creature = (Creature)edamagee;
+
+		// ... and the liable damager is a player ...
+		Entity edamager = MUtil.getLiableDamager(event);
+
+		// ... or a player being targetted by a mob ...
+		if (edamager instanceof Creature) {
+			LivingEntity target = ((Creature)edamager).getTarget();
+			if (target == null) return;
+			edamager = target;
+		}
+
+		if (!(edamager instanceof Player)) return;
+		Player player = (Player)edamager;
+
+		// ... and the player can't build there ...
+		if (canPlayerHurtAnimalsAt(player, PS.valueOf(creature), true)) return;
+
+		// ... then cancel the event.
+		event.setCancelled(true);
+
+		// Remove projectile if it was the attacker to make sure it doesn't
+		// fire more events than it should
+		if (event.getDamager() instanceof Projectile) event.getDamager().remove();
+	}
+
 	// -------------------------------------------- //
 	// ASSORTED BUILD AND INTERACT
 	// -------------------------------------------- //
