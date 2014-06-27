@@ -777,7 +777,7 @@ public class FactionsListenerMain implements Listener
 	// FLAG: BUILD
 	// -------------------------------------------- //
 
-	public static boolean canPlayerBuildAt(Player player, PS ps, boolean verboose)
+	public static boolean canPlayerBuildAt(Player player, PS ps, boolean verbose)
 	{
 		String name = player.getName();
 		if (MConf.get().playersWhoBypassAllProtection.contains(name)) return true;
@@ -785,18 +785,24 @@ public class FactionsListenerMain implements Listener
 		UPlayer uplayer = UPlayer.get(player);
 		if (uplayer.isUsingAdminMode()) return true;
 
-		if (!FPerm.BUILD.has(uplayer, ps, false) && FPerm.PAINBUILD.has(uplayer, ps, false))
+		if (!FPerm.BUILD.has(uplayer, ps, false))
 		{
-			if (verboose)
+			Faction hostFaction = BoardColls.get().getFactionAt(ps);
+			boolean factionOnline = hostFaction.isFactionConsideredOnline();
+
+			if ((factionOnline && FPerm.PAINBUILD.has(uplayer, ps, false))
+					|| (!factionOnline && FPerm.OFFLINEPAINBUILD.has(uplayer, ps, false)))
 			{
-				Faction hostFaction = BoardColls.get().getFactionAt(ps);
-				uplayer.msg("<b>It is painful to build in the territory of %s<b>.", hostFaction.describeTo(uplayer));
-				player.damage(UConf.get(player).actionDeniedPainAmount);
+				if (verbose)
+				{
+					uplayer.msg("<b>It is painful to build in the territory of %s<b>.", hostFaction.describeTo(uplayer));
+					player.damage(UConf.get(player).actionDeniedPainAmount);
+				}
+				return true;
 			}
-			return true;
 		}
 		
-		return FPerm.BUILD.has(uplayer, ps, verboose);
+		return FPerm.BUILD.has(uplayer, ps, verbose);
 	}
 	
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
