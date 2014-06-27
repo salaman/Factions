@@ -29,6 +29,7 @@ import com.massivecraft.factions.entity.UConfColls;
 import com.massivecraft.factions.entity.UPlayerColls;
 import com.massivecraft.factions.entity.FactionColls;
 import com.massivecraft.factions.entity.MConfColl;
+import com.massivecraft.factions.integration.essentials.IntegrationEssentials;
 import com.massivecraft.factions.integration.herochat.IntegrationHerochat;
 import com.massivecraft.factions.integration.lwc.IntegrationLwc;
 import com.massivecraft.factions.listeners.FactionsListenerChat;
@@ -140,7 +141,8 @@ public class Factions extends MassivePlugin
 		// Integrate
 		this.integrate(
 			IntegrationHerochat.get(),
-			IntegrationLwc.get()
+			IntegrationLwc.get(),
+			IntegrationEssentials.get()
 		);
 		
 		// Schedule recurring non-tps-dependent tasks

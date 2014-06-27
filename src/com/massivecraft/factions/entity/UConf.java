@@ -128,6 +128,7 @@ public class UConf extends Entity<UConf>
 	public boolean homesEnabled = true;
 	public boolean homesMustBeInClaimedTerritory = true;
 	public boolean homesTeleportCommandEnabled = true;
+	public boolean homesTeleportCommandEssentialsIntegration = false;
 	public boolean homesTeleportAllowedFromEnemyTerritory = true;
 	public boolean homesTeleportAllowedFromDifferentWorld = true;
 	public double homesTeleportAllowedEnemyDistance = 32.0;
