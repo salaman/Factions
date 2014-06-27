@@ -81,36 +81,32 @@ public class EngineLwc implements Listener
 			protection.remove();
 		}
 	}
-	
+
 	public static List<Protection> getProtectionsInChunk(PS chunkPs)
 	{
-		List<Protection> ret = new ArrayList<Protection>();
-		
 		// Get the chunk
-		Chunk chunk = null;
+		Chunk chunk;
 		try
 		{
 			chunk = chunkPs.asBukkitChunk(true);
 		}
 		catch (Exception e)
 		{
-			return ret;
+			return new ArrayList<Protection>();
 		}
-		
-		for (BlockState blockState : chunk.getTileEntities())
-		{
-			// TODO: Can something else be protected by LWC? Or is it really only chests?
-			// TODO: How about we run through each block in the chunk just to be on the safe side?
-			if (blockState.getType() != Material.CHEST) continue;
-			Block block = blockState.getBlock();
-			
-			Protection protection = LWC.getInstance().findProtection(block);
-			if (protection == null) continue;
-			
-			ret.add(protection);
-		}
-		
-		return ret;
+
+		// Get 2 bounding coordinates of the chunk
+		int cx = chunk.getX();
+		int cz = chunk.getZ();
+
+		int x1 = cx << 4;
+		int x2 = x1 + 15;
+		int y1 = 0;
+		int y2 = 255;
+		int z1 = cz << 4;
+		int z2 = z1 + 15;
+
+		return LWC.getInstance().getPhysicalDatabase().loadProtections(chunk.getWorld().getName(), x1, x2, y1, y2, z1, z2);
 	}
 	
 }
