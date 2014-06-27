@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Factions" default="all">
+
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/*.lib/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+
+  <patternset id="compiler.resources">
+    <include name="plugin.yml" />
+  </patternset>
+  
+  <!-- Project Libraries -->
+  
+  <fileset dir="${basedir}/lib" id="libs">
+    <include name="*.jar"/>
+  </fileset>
+
+  <!-- Factions -->
+
+  <property name="build.dir" value="build"/>
+  <property name="class.dir" value="${build.dir}/classes"/>
+  <property name="out.dir" value="${build.dir}/out" />
+  <property name="jar.file" value="Factions.jar" />
+
+  <target name="factions" description="Compile Factions">
+    <mkdir dir="${class.dir}"/>
+    <javac destdir="${class.dir}" debug="true" debuglevel="lines,vars,source" includeantruntime="true" deprecation="true">
+      <compilerarg value="-Xlint:-options"/>
+      <classpath>
+          <fileset refid="libs" />
+      </classpath>
+      <src path="src" />
+      <patternset refid="ignored.files"/>
+    </javac>
+
+    <copy todir="${class.dir}">
+      <fileset dir="${basedir}">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="clean" description="cleanup module">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="build.modules" depends="clean, factions" description="Build all modules"/>
+  
+  <target name="build.artifacts" depends="factions" description="Build Factions.jar">
+    <mkdir dir="${out.dir}"/>
+
+    <loadfile srcfile="plugin.yml" property="version">
+      <filterchain>
+        <linecontains>
+          <contains value="version:" />
+        </linecontains>
+        <headfilter lines="1" />
+        <striplinebreaks />
+        <tokenfilter>
+          <replacestring from="version: " to="" />
+        </tokenfilter>
+      </filterchain>
+    </loadfile>
+
+    <jar destfile="${out.dir}/${jar.file}">
+      <zipfileset dir="${class.dir}"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Factions" />
+        <attribute name="Implementation-Vendor" value="MassiveCraft" />
+        <attribute name="Implementation-Version" value="${version}-Salaman" />
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="all" depends="build.modules, build.artifacts" description="build all"/>
+</project>
